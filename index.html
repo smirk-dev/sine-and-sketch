@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sine &amp; Sketch</title>
+<meta name="description" content="Draw on a Cartesian plane and get the equations, or write equations and watch them draw. Export to PNG, JPG, SVG, PDF, PSD and ORA.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f0e8; --surface:#fbfaf6; --surface2:#f0ece1; --ink:#1d2433; --muted:#687085; --line:#d9d4c7;
+  --accent:#d9480f; --accent-ink:#fff; --blue:#1c4e80; --ok:#2b8a3e; --err:#c92a2a;
+  --paper:#fffdf8; --shadow:0 1px 0 rgba(29,36,51,.04),0 12px 32px -16px rgba(29,36,51,.25);
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
+  --sans:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#171b24; --surface2:#1e232e; --ink:#e8e6df; --muted:#8c93a3; --line:#2a303d;
+    --accent:#ff8a5c; --accent-ink:#1a1006; --blue:#6cb0ff; --ok:#69db7c; --err:#ff8787; --paper:#141821;
+    --shadow:0 1px 0 rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#171b24; --surface2:#1e232e; --ink:#e8e6df; --muted:#8c93a3; --line:#2a303d;
+  --accent:#ff8a5c; --accent-ink:#1a1006; --blue:#6cb0ff; --ok:#69db7c; --err:#ff8787; --paper:#141821;
+  --shadow:0 1px 0 rgba(0,0,0,.4),0 12px 32px -16px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1480px;margin:0 auto;padding:0 16px}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:700;font-size:20px;letter-spacing:-.01em;text-decoration:none;color:var(--ink)}
+.brand svg{width:28px;height:28px}
+.top nav{display:flex;gap:6px;align-items:center}
+.top nav a{color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:8px}
+.top nav a:hover{color:var(--ink);background:var(--surface2)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center;padding:28px 0 36px}
+.hero h1{font-family:var(--serif);font-weight:700;font-size:clamp(40px,6vw,76px);line-height:1;letter-spacing:-.03em;margin:0 0 18px}
+.hero h1 em{font-style:italic;color:var(--accent);font-weight:500}
+.hero p.lead{font-size:18px;color:var(--muted);max-width:52ch;margin:0 0 22px}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);text-decoration:none;color:var(--ink);font-weight:500}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:4px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px}
+.chip:hover{background:var(--surface2);border-color:var(--muted)}
+.hero-art{aspect-ratio:1/1;max-height:440px;width:100%;border-radius:20px;background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;position:relative}
+.hero-art canvas{width:100%;height:100%;display:block}
+.hero-art figcaption{position:absolute;left:14px;bottom:10px;font:12px var(--mono);color:var(--muted);right:14px}
+.hero-art{margin:0}
+
+/* studio */
+.studio-head{display:flex;align-items:baseline;justify-content:space-between;margin:8px 0 10px}
+.studio-head h2{font-family:var(--serif);font-size:26px;margin:0;letter-spacing:-.02em}
+.studio-head span{color:var(--muted);font-size:13px}
+.studio{--left:58%;display:grid;grid-template-columns:var(--left) 12px minmax(0,1fr);height:min(900px,calc(100vh - 28px));min-height:640px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.pane{min-width:0;min-height:0;display:flex;flex-direction:column}
+.splitter{cursor:col-resize;position:relative;background:var(--surface2);border-left:1px solid var(--line);border-right:1px solid var(--line);touch-action:none}
+.splitter::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:44px;transform:translate(-50%,-50%);border-radius:4px;background:var(--muted);opacity:.5}
+.splitter:hover::after,.splitter:focus-visible::after{opacity:1;background:var(--accent)}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface)}
+.grp{display:flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+.tbtn{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;border-radius:8px;padding:6px 9px;font-size:13px;color:var(--ink)}
+.tbtn svg{width:16px;height:16px;flex:none}
+.tbtn:hover{background:var(--surface)}
+.tbtn[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.tbtn:disabled{opacity:.35;cursor:default}
+.slider{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.slider input[type=range]{width:110px;accent-color:var(--accent)}
+.slider b{font-family:var(--mono);font-weight:500;color:var(--ink);min-width:2ch;text-align:right}
+.stage{position:relative;flex:1;min-height:0;background:var(--paper);touch-action:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.stage.hand canvas{cursor:grab}
+.stage.panning canvas{cursor:grabbing}
+.readout{position:absolute;left:10px;bottom:8px;font:12px var(--mono);color:var(--muted);background:color-mix(in srgb,var(--paper) 80%,transparent);padding:2px 8px;border-radius:6px;pointer-events:none}
+.hint{position:absolute;left:50%;top:14px;transform:translateX(-50%);font-size:13px;color:var(--muted);background:color-mix(in srgb,var(--paper) 88%,transparent);border:1px dashed var(--line);padding:5px 12px;border-radius:999px;pointer-events:none;transition:opacity .4s;white-space:nowrap}
+.hint.gone{opacity:0}
+
+/* equations pane */
+.pane-eq{overflow:auto}
+.eq-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 14px 6px}
+.eq-head h3{margin:0;font-family:var(--serif);font-size:18px;letter-spacing:-.01em}
+.eq-head .acts{display:flex;gap:6px;flex-wrap:wrap}
+.sbtn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 10px;font-size:13px}
+.sbtn:hover{border-color:var(--muted)}
+select.sbtn{padding-right:6px}
+textarea#eq{flex:1 1 220px;min-height:200px;margin:0 14px;resize:none;border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:12px 14px;font:13px/1.65 var(--mono);color:var(--ink);tab-size:2;white-space:pre-wrap;overflow-wrap:anywhere}
+textarea#eq:focus{border-color:var(--accent);outline:none}
+.status{padding:8px 14px 0;font-size:13px;color:var(--muted)}
+.status .bad{color:var(--err);font-family:var(--mono);font-size:12px;display:block;cursor:pointer}
+.status .good{color:var(--ok)}
+.curve-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 0;max-height:84px;overflow:auto}
+.cc{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 10px 2px 6px;font:12px var(--mono);max-width:100%}
+.cc i{width:10px;height:10px;border-radius:50%;flex:none}
+.cc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:210px}
+.cc:hover{border-color:var(--muted)}
+details.syntax{margin:10px 14px 0;font-size:13px;color:var(--muted)}
+details.syntax summary{cursor:pointer;color:var(--ink);font-weight:500}
+details.syntax pre{font:12px/1.6 var(--mono);background:var(--surface2);padding:10px 12px;border-radius:10px;overflow:auto;margin:8px 0 0;color:var(--ink)}
+.export{margin:14px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
+.export h3{margin:0 0 8px;font-family:var(--serif);font-size:17px}
+.opts{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.opts label{display:inline-flex;align-items:center;gap:6px}
+.opts select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:3px 6px}
+.fmt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
+.fmt{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.fmt b{font-family:var(--mono);font-size:13px;font-weight:500}
+.fmt small{font-size:11.5px;color:var(--muted);line-height:1.3}
+.fmt:hover{border-color:var(--accent)}
+.fmt:disabled{opacity:.5}
+.note{font-size:12px;color:var(--muted);margin:10px 0 0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:var(--ink);color:var(--surface);padding:9px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* how it works */
+.how{padding:56px 0 40px}
+.how h2{font-family:var(--serif);font-size:clamp(28px,3.4vw,40px);letter-spacing:-.02em;margin:0 0 6px}
+.how .sub{color:var(--muted);max-width:60ch;margin:0 0 26px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+.step .n{font:500 12px var(--mono);color:var(--accent)}
+.step h3{margin:6px 0 6px;font-family:var(--serif);font-size:20px}
+.step p{margin:0;color:var(--muted);font-size:14px}
+.step code,.note code{font:12.5px var(--mono);background:var(--surface2);padding:1px 5px;border-radius:5px;color:var(--ink)}
+footer{padding:18px 0 40px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr}
+  .hero-art{max-height:300px}
+  .studio{grid-template-columns:1fr;grid-template-rows:62vh auto;height:auto}
+  .splitter{display:none}
+  .pane-eq{overflow:visible}
+  textarea#eq{min-height:260px}
+  .steps{grid-template-columns:1fr}
+  .hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hint,.toast{transition:none}}
+
+[hidden]{display:none!important}
+.modes{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:var(--surface);flex-wrap:wrap}
+.modes button{border:0;background:transparent;border-radius:10px;padding:8px 14px;text-align:left;display:flex;flex-direction:column;gap:0;line-height:1.25;cursor:pointer;color:inherit;font:inherit}
+.modes button b{font-family:var(--serif);font-size:16px;font-weight:700}
+.modes button small{font-size:11.5px;color:var(--muted)}
+.modes button:hover{background:var(--surface2)}
+.modes button[aria-selected="true"]{background:var(--ink);color:var(--surface)}
+.modes button[aria-selected="true"] small{color:color-mix(in srgb,var(--surface) 70%,transparent)}
+.studio-head{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:8px 0 12px}
+.studio-head .blurb{color:var(--muted);font-size:13.5px;max-width:58ch}
+.stage canvas#glcv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.stage canvas#cv{background:transparent;position:relative}
+.selw{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.selw select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:3px 6px}
+.drop{margin:4px 14px 0;border:1.5px dashed var(--line);border-radius:14px;padding:16px;text-align:center;color:var(--muted);font-size:14px;background:var(--paper)}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--paper))}
+.drop .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:12px 14px 0;font-size:13px;color:var(--muted)}
+.pgrid label{display:flex;flex-direction:column;gap:3px}
+.pgrid select,.pgrid input[type=range]{width:100%}
+.pgrid select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 6px}
+.pgrid input[type=range]{accent-color:var(--accent)}
+.pgrid b{font-family:var(--mono);font-weight:500;color:var(--ink)}
+.prog{margin:12px 14px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bar{flex:1;min-width:120px;height:8px;border-radius:6px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent)}
+.pstat{font:12px var(--mono);color:var(--muted)}
+.fmt:disabled{opacity:.35;cursor:not-allowed}
+.how .two{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:14px}
+@media (max-width:900px){.how .two{grid-template-columns:1fr}.pgrid{grid-template-columns:1fr}}
+.sweep{margin:8px 14px 0;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--paper);flex:none;height:min(300px,42%);overflow:auto}
+.sweep-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:8px}
+.sweep-head b{color:var(--ink);font-family:var(--serif);font-size:15px}
+.sweep-head .sbtn:first-of-type{margin-left:auto}
+.sweep-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.vcell{border:1px solid var(--line);border-radius:8px;padding:0;background:var(--surface);overflow:hidden;cursor:pointer;aspect-ratio:220/150}
+.vcell:hover{border-color:var(--accent)}
+.vcell canvas{width:100%;height:100%;display:block}
+.fbar{flex:none;border-top:1px solid var(--line);background:var(--surface);padding:9px 14px 10px;display:flex;flex-direction:column;gap:5px;height:clamp(110px,26%,230px);min-height:0}
+.fbar-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.fbar-tag{font:600 13.5px var(--mono);color:var(--accent);white-space:nowrap}
+.fbar-title{flex:1;min-width:140px;font-size:12.5px;color:var(--muted)}
+.fbar-body{flex:1;min-height:0;overflow:auto;font:13px/1.6 var(--mono);color:var(--ink);overscroll-behavior:contain}
+.fbar-body .fl{white-space:pre-wrap;overflow-wrap:anywhere}
+.fbar-body .fl b{font-weight:600;color:var(--blue)}
+.fbar-body .fl.dim{color:var(--muted)}
+.fbar-body .ft{white-space:pre;color:var(--muted)}
+.about{padding:56px 0 44px;border-top:1px solid var(--line);margin-top:48px}
+.about .kicker{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+.about h2{font-family:var(--serif);font-size:clamp(28px,3.4vw,42px);letter-spacing:-.02em;line-height:1.1;margin:0 0 18px;max-width:20ch}
+.about .quote{font-family:var(--serif);font-size:clamp(17px,1.7vw,21px);line-height:1.55;max-width:70ch;margin:0 0 34px;padding-left:18px;border-left:3px solid var(--accent)}
+.about code{font:.85em var(--mono);background:var(--surface2);padding:1px 6px;border-radius:5px}
+.people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+.person{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);display:grid;grid-template-columns:clamp(150px,40%,290px) minmax(0,1fr)}
+.person img{width:100%;height:100%;min-height:100%;object-fit:cover;display:block;background:var(--surface2)}
+.person img[src$="hamid.jpg"]{object-position:66% 30%}
+.pbody{padding:18px 20px 18px}
+.pbody .role{font:500 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 2px}
+.pbody h3{font-family:var(--serif);font-size:24px;line-height:1.15;margin:0 0 8px;letter-spacing:-.01em}
+.pbody p{margin:0 0 12px;font-size:14.5px;color:var(--muted)}
+.links{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.links a{display:inline-flex;flex-direction:column;gap:0;line-height:1.25;border:1px solid var(--line);border-radius:10px;padding:5px 10px;text-decoration:none;color:var(--ink);background:var(--paper);max-width:100%}
+.links a b{font-size:12.5px}
+.links a span{font:11.5px var(--mono);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.links a:hover{border-color:var(--accent)}
+.pbody .credit{font-size:12px;margin:4px 0 0}
+.pbody .credit a{color:inherit}
+@media (max-width:1100px){.people{grid-template-columns:1fr}}
+@media (max-width:560px){.person{grid-template-columns:1fr}.person img{height:auto;aspect-ratio:1/1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#top" aria-label="Sine and Sketch home">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 16h26M16 3v26" stroke-width="1.2" opacity=".35"/><path d="M3 16c3-12 7-12 10 0s7 12 10 0 4-6 6-4" stroke="#d9480f"/></svg>
+      Sine &amp; Sketch
+    </a>
+    <nav>
+      <a href="#studio-title">Studio</a>
+      <a href="#inspiration">About</a>
+      <button class="tbtn" id="themeBtn" aria-label="Toggle light and dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Theme</button>
+    </nav>
+  </header>
+
+  <section class="hero" id="top">
+    <div>
+      <h1>Pictures made of <em>pure math.</em></h1>
+      <p class="lead">Write functions and every pixel obeys them. Release thousands of circles whose size and position come from sine and cosine. Or hand over a photo and have it rebuilt from circles. The ways mathematical artist Hamid Naderi Yeganeh makes images, in one studio.</p>
+      <div class="cta">
+        <a class="btn primary" href="#studio-title">Open the studio</a>
+        <a class="btn" href="#inspiration">Why this exists</a>
+      </div>
+      <div class="chips" id="heroChips"><span class="lbl">Try one</span></div>
+    </div>
+    <figure class="hero-art"><canvas id="heroCv" aria-label="Animated rose curve"></canvas><figcaption>r = 6 cos(kθ)</figcaption></figure>
+  </section>
+
+  <div class="studio-head" id="studio-title">
+    <div class="modes" role="tablist" aria-label="Studios">
+      <button role="tab" data-mode="pixel" aria-selected="true"><b>Pixel</b><small>functions colour every pixel</small></button>
+      <button role="tab" data-mode="swarm" aria-selected="false"><b>Swarm</b><small>thousands of shapes, one formula</small></button>
+      <button role="tab" data-mode="photo" aria-selected="false"><b>Photo</b><small>a picture rebuilt from circles</small></button>
+      <button role="tab" data-mode="curves" aria-selected="false"><b>Curves</b><small>sketch to equations</small></button>
+    </div>
+    <span class="blurb" id="blurb"></span>
+  </div>
+
+  <section class="studio" id="studio" aria-label="Studio">
+    <div class="pane pane-canvas">
+      <div class="toolbar" role="toolbar" aria-label="Tools">
+        <div class="grp" data-modes="curves">
+          <button class="tbtn" id="toolPen" aria-pressed="true" title="Pen (P)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Pen</button>
+          <button class="tbtn" id="toolHand" aria-pressed="false" title="Pan (H, or hold Space)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 00-4 0v4M14 10V4a2 2 0 00-4 0v6M10 10.5V6a2 2 0 00-4 0v8l-1.5-1.5a2 2 0 00-3 2.6L6 21h9a5 5 0 005-5v-5a2 2 0 00-4 0"/></svg>Pan</button>
+        </div>
+        <div class="grp" data-modes="curves swarm pixel">
+          <button class="tbtn" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-15-6.7L3 13"/></svg></button>
+          <button class="tbtn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0115-6.7L21 13"/></svg></button>
+          <button class="tbtn" id="clearBtn" title="Clear everything" aria-label="Clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Clear</button>
+        </div>
+        <div class="grp">
+          <button class="tbtn" id="gridBtn" aria-pressed="true" title="Show the Cartesian plane"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M12 3v18M3 7h18M3 17h18M7 3v18M17 3v18" opacity=".6"/></svg>Plane</button>
+          <button class="tbtn" id="inkBtn" data-modes="curves" aria-pressed="true" title="Show your raw sketch under the fitted curve">Sketch</button>
+          <button class="tbtn" id="smartBtn" data-modes="curves" aria-pressed="true" title="Snap near-perfect lines and circles to simple equations">Snap shapes</button>
+          <button class="tbtn" id="homeBtn" title="Reset view">Reset view</button>
+        </div>
+        <div class="grp" data-modes="pixel">
+          <button class="tbtn" id="playBtn" aria-pressed="false" title="Animate t"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>Animate</button>
+        </div>
+        <label class="selw" data-modes="pixel">Quality <select id="pxScale"><option value="0.5">Draft</option><option value="1" selected>Normal</option><option value="1.5">High</option></select></label>
+        <label class="slider" data-modes="curves" title="How many sine/cosine terms are used to fit each stroke"><span>Harmonics</span><input type="range" id="kRange" min="2" max="60" value="14"><b id="kVal">14</b></label>
+      </div>
+      <div class="stage" id="stage">
+        <canvas id="glcv" hidden></canvas>
+        <canvas id="cv" aria-label="Canvas with Cartesian plane"></canvas>
+        <div class="hint" id="hint" hidden></div>
+        <div class="readout" id="readout">x 0.00 · y 0.00</div>
+      </div>
+      <div class="fbar" id="fbar" role="region" aria-label="This picture as a mathematical function" aria-live="polite">
+        <div class="fbar-head">
+          <span class="fbar-tag" id="fbarTag"></span>
+          <span class="fbar-title" id="fbarTitle"></span>
+          <button class="sbtn" id="fbarCopy" title="Copy the whole function">Copy function</button>
+        </div>
+        <div class="fbar-body" id="fbarBody"></div>
+      </div>
+    </div>
+
+    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Resize panels" tabindex="0"></div>
+
+    <div class="pane pane-eq">
+      <div class="eq-head">
+        <h3 id="panelTitle">Equations</h3>
+        <div class="acts">
+          <select class="sbtn" id="presetSel" aria-label="Load an example"><option value="">Examples…</option></select>
+          <button class="sbtn" id="varyBtn" data-modes="swarm" title="Re-roll the constants (a = 3 lines) and pick what looks right">Vary</button>
+          <button class="sbtn" id="copyBtn">Copy</button>
+          <button class="sbtn" id="desmosBtn" data-modes="curves" title="Copy in a form Desmos accepts (best effort)">Copy for Desmos</button>
+        </div>
+      </div>
+
+      <div class="sweep" id="sweep" hidden>
+        <div class="sweep-head"><b>Variations</b><span>click one to keep it</span><button class="sbtn" id="sweepRoll">Roll again</button><button class="sbtn" id="sweepClose">Close</button></div>
+        <div class="sweep-grid" id="sweepGrid"></div>
+      </div>
+
+      <div id="photoPanel" hidden>
+        <div class="drop" id="drop">
+          Drop a photo here
+          <div class="row">
+            <label class="sbtn" style="cursor:pointer">Choose image<input type="file" id="photoFile" accept="image/*" hidden></label>
+            <button class="sbtn" id="photoFromPixel" title="Rebuild whatever the Pixel studio is showing as circles">Use the Pixel studio's picture</button>
+          </div>
+        </div>
+        <div class="pgrid">
+          <label>Shapes <b id="phNv">20,000</b><input type="range" id="phN" min="2000" max="80000" step="1000" value="20000"></label>
+          <label>Shape <select id="phStyle"><option value="ellipse">Edge-aligned ellipses (sharper)</option><option value="circle">Circles (like Hamid's faces)</option></select></label>
+          <label>Detail <select id="phRes"><option value="320">320 px, fast</option><option value="480" selected>480 px</option><option value="640">640 px, slow</option></select></label>
+          <label>Search <select id="phQ"><option value="4">Quick</option><option value="8" selected>Balanced</option><option value="16">Thorough</option></select></label>
+          <label>Largest shape <b id="phRv">22%</b><input type="range" id="phR" min="6" max="45" step="1" value="22"></label>
+        </div>
+        <div class="prog">
+          <button class="btn primary" id="phGo">Start</button>
+          <button class="sbtn" id="phReset">Restart</button>
+          <div class="bar"><i id="phBar"></i></div>
+          <span class="pstat" id="phStat">No picture yet</span>
+        </div>
+        <p class="note" style="margin:10px 14px 0" id="phNote">Each shape k has a centre (X(k), Y(k)), a size and a colour, like the shapes in Hamid's 12,000-circle faces. Here they are found by error-guided painting, not written by hand, so the "formulas" are a data table (export .txt).</p>
+      </div>
+
+      <textarea id="eq" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Equations, one per line"></textarea>
+      <div class="status" id="status" aria-live="polite"></div>
+      <div class="curve-chips" id="chips"></div>
+      <details class="syntax" id="syntaxBox">
+        <summary>Syntax</summary>
+        <pre id="syntaxPre"></pre>
+      </details>
+
+      <div class="export" id="exportBox">
+        <h3>Export</h3>
+        <div class="opts">
+          <label>Scale <select id="expScale"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select></label>
+          <label>Paper <select id="expPaper"><option value="light">Light</option><option value="dark">Dark</option><option value="clear">Transparent</option></select></label>
+          <label><input type="checkbox" id="expGrid"> Plane</label>
+          <label data-modes="curves"><input type="checkbox" id="expInk" checked> Raw sketch</label>
+        </div>
+        <div class="fmt-grid">
+          <button class="fmt" data-fmt="png"><b>.png</b><small>Raster, keeps transparency</small></button>
+          <button class="fmt" data-fmt="jpg"><b>.jpg</b><small>Raster, small file</small></button>
+          <button class="fmt" data-fmt="svg"><b>.svg</b><small>Vector with layers (Illustrator, Inkscape, Figma)</small></button>
+          <button class="fmt" data-fmt="pdf"><b>.pdf</b><small>Vector, print ready</small></button>
+          <button class="fmt" data-fmt="psd"><b>.psd</b><small>Photoshop, layered</small></button>
+          <button class="fmt" data-fmt="ora"><b>.ora</b><small>OpenRaster layers (Krita, GIMP, MyPaint)</small></button>
+          <button class="fmt" data-fmt="txt"><b>.txt</b><small id="txtSmall">The equations as text</small></button>
+          <button class="fmt" data-fmt="json"><b>.json</b><small>Project file you can reopen</small></button>
+        </div>
+        <p class="note" id="expNote"></p>
+        <p class="note">Open a saved project: <label class="sbtn" style="cursor:pointer;display:inline-block;margin-left:4px">Choose .json<input type="file" id="openFile" accept=".json,application/json" hidden></label></p>
+        <p class="note">Procreate (<code>.procreate</code>), Clip Studio (<code>.clip</code>) and Illustrator (<code>.ai</code>) are closed formats with no public spec, so they are not written directly. Use <code>.svg</code> or <code>.pdf</code> for Illustrator and Affinity, and <code>.psd</code> or <code>.ora</code> for layered raster apps.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="inspiration">
+    <p class="kicker">Where this comes from</p>
+    <h2>One question, and the person who answers it best</h2>
+    <p class="quote">Sine &amp; Sketch started from a single question: how can a formula hold a whole picture? The best answer I have seen is the work of Hamid Naderi Yeganeh, and this studio takes heavy inspiration from it. His swarms of shapes indexed by <code>k</code>, his networks of functions that decide the colour of every pixel, and his habit of treating each image as a function are the three ideas under everything here. It is a tribute, not a copy. His own formulas are mostly unpublished, so the examples are my attempts at the same idea. If this makes you curious, go and look at his work first.</p>
+
+    <div class="people">
+      <article class="person">
+        <img src="img/hamid.jpg" alt="Hamid Naderi Yeganeh standing beside his artwork A Bird in Flight" width="640" height="640" loading="lazy">
+        <div class="pbody">
+          <p class="role">The inspiration</p>
+          <h3>Hamid Naderi Yeganeh</h3>
+          <p>Iranian mathematician and mathematical artist, born in Qom in 1990. He studied at the University of Qom and Sharif University of Technology and has a PhD from University College London. He draws birds, boats, faces, fractals and tessellations using nothing but mathematical formulas. His artwork <i>9,000 Ellipses</i> was the cover of <i>The American Mathematical Monthly</i> in November 2017.</p>
+          <ul class="links" aria-label="Hamid Naderi Yeganeh online">
+            <li><a href="https://www.linkedin.com/in/hamidnaderiyeganeh/" target="_blank" rel="noopener noreferrer"><b>LinkedIn</b><span>hamidnaderiyeganeh</span></a></li>
+            <li><a href="https://x.com/naderi_yeganeh" target="_blank" rel="noopener noreferrer"><b>X</b><span>@naderi_yeganeh</span></a></li>
+            <li><a href="http://alum.sharif.edu/~naderiyeganeh/" target="_blank" rel="noopener noreferrer"><b>Website</b><span>alum.sharif.edu/~naderiyeganeh</span></a></li>
+            <li><a href="https://www.ams.org/yeganeh" target="_blank" rel="noopener noreferrer"><b>AMS</b><span>Mathematical Concepts Illustrated</span></a></li>
+            <li><a href="https://en.wikipedia.org/wiki/Hamid_Naderi_Yeganeh" target="_blank" rel="noopener noreferrer"><b>Wikipedia</b><span>Hamid Naderi Yeganeh</span></a></li>
+          </ul>
+          <p class="credit">Photo: Hamid Naderi Yeganeh, <a href="https://commons.wikimedia.org/wiki/File:Hamid_Naderi_Yeganeh_2018.jpg" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>, via Wikimedia Commons. Not affiliated with this project.</p>
+        </div>
+      </article>
+
+      <article class="person">
+        <img src="img/suryansh.jpg" alt="Suryansh Mishra" width="400" height="400" loading="lazy">
+        <div class="pbody">
+          <p class="role">The builder</p>
+          <h3>Suryansh Mishra</h3>
+          <p>AI engineer and computer science student at UPES in Delhi NCR, with a minor in AI and ML from IIT Ropar. I build support bots, RAG systems and agents that ship. I also write poetry. I made Sine &amp; Sketch out of curiosity about how Hamid does what he does, and to give other people a place to try the same ideas.</p>
+          <ul class="links" aria-label="Suryansh Mishra online">
+            <li><a href="https://www.linkedin.com/in/connectwithsuryanshmishra" target="_blank" rel="noopener noreferrer"><b>LinkedIn</b><span>connectwithsuryanshmishra</span></a></li>
+            <li><a href="https://x.com/smirkisanalias" target="_blank" rel="noopener noreferrer"><b>X</b><span>@smirkisanalias</span></a></li>
+            <li><a href="https://github.com/smirk-dev" target="_blank" rel="noopener noreferrer"><b>GitHub</b><span>smirk-dev</span></a></li>
+            <li><a href="https://instagram.com/suryansh.mishra_" target="_blank" rel="noopener noreferrer"><b>Instagram</b><span>suryansh.mishra_</span></a></li>
+            <li><a href="https://leetcode.com/u/smirk-dev/" target="_blank" rel="noopener noreferrer"><b>LeetCode</b><span>smirk-dev</span></a></li>
+            <li><a href="https://suryanshmishra.vercel.app" target="_blank" rel="noopener noreferrer"><b>Website</b><span>suryanshmishra.vercel.app</span></a></li>
+            <li><a href="https://topmate.io/suryansh_mishra1" target="_blank" rel="noopener noreferrer"><b>Topmate</b><span>Book a 1:1</span></a></li>
+            <li><a href="https://www.pinterest.com/suryanshmishra1" target="_blank" rel="noopener noreferrer"><b>Pinterest</b><span>suryanshmishra1</span></a></li>
+            <li><a href="https://www.snapchat.com/add/itssuryanshm" target="_blank" rel="noopener noreferrer"><b>Snapchat</b><span>itssuryanshm</span></a></li>
+            <li><a href="https://open.spotify.com/user/u300cuzkdek1x1b1eh03zwiq3" target="_blank" rel="noopener noreferrer"><b>Spotify</b><span>Playlists</span></a></li>
+            <li><a href="https://discord.gg/cZdCEW9Nu4" target="_blank" rel="noopener noreferrer"><b>Discord</b><span>Join the server</span></a></li>
+            <li><a href="https://linktr.ee/mishrasuryansh" target="_blank" rel="noopener noreferrer"><b>Linktree</b><span>mishrasuryansh</span></a></li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </section>
+  <footer>Everything runs in your browser. Nothing is uploaded. Inspired by the work of Hamid Naderi Yeganeh; not affiliated.</footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="js/engine.js"></script>
+<script src="js/fit.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/export.js"></script>
+<script src="js/pixel.js"></script>
+<script src="js/photo.js"></script>
+<script src="js/formula.js"></script>
+<script src="js/presets.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
